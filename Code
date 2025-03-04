@@ -1,0 +1,99 @@
+rom kivy.app import App
+from kivy.uix.label import Label
+from kivy.uix.button import Button
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.image import Image
+from kivy.clock import Clock
+from kivy.uix.screenmanager import ScreenManager, Screen
+
+class Question:
+    def _init_(self, prompt, answer):
+        self.prompt = prompt
+        self.answer = answer
+
+question_prompts = [
+    "What is the capital of France? \n(a) Paris \n(b) Rome \n(c) Madrid\n",
+    "Which planet is known as the Red Planet? \n(a) Venus \n(b) Mars \n(c) Jupiter\n",
+    "What is the largest mammal in the world? \n(a) Elephant \n(b) Blue Whale \n(c) Giraffe\n",
+    "Who painted the Mona Lisa? \n(a) Vincent van Gogh \n(b) Leonardo da Vinci \n(c) Pablo Picasso\n",
+    "What is the tallest mountain in the world? \n(a) Mount Everest \n(b) K2 \n(c) Kilimanjaro\n"
+]
+
+questions = [
+    Question(question_prompts[0], "a"),
+    Question(question_prompts[1], "b"),
+    Question(question_prompts[2], "b"),
+    Question(question_prompts[3], "b"),
+    Question(question_prompts[4], "a")
+]
+
+class QuizApp(App):
+    def build(self):
+        self.score = 0
+        self.question_index = 0
+        
+        self.question_label = Label(text=questions[self.question_index].prompt)
+        self.button_a = Button(text="a", on_press=self.check_answer)
+        self.button_b = Button(text="b", on_press=self.check_answer)
+        self.button_c = Button(text="c", on_press=self.check_answer)
+        
+        self.layout = BoxLayout(orientation='vertical')
+        self.layout.add_widget(self.question_label)
+        self.layout.add_widget(self.button_a)
+        self.layout.add_widget(self.button_b)
+        self.layout.add_widget(self.button_c)
+
+        self.screen_manager = ScreenManager()
+        self.screen = Screen(name='quiz')
+        self.screen.add_widget(self.layout)
+        self.screen_manager.add_widget(self.screen)
+
+        return self.screen_manager
+
+    def check_answer(self, instance):
+        answer = instance.text
+        correct_answer = questions[self.question_index].answer
+        if answer == correct_answer:
+            self.score += 2
+            instance.background_color = (0, 1, 0, 1)  # Green if correct
+        else:
+            instance.background_color = (1, 0, 0, 1)  # Red if wrong
+            # Show correct answer in green
+            if correct_answer == 'a':
+                self.button_a.background_color = (0, 1, 0, 1)
+            elif correct_answer == 'b':
+                self.button_b.background_color = (0, 1, 0, 1)
+            elif correct_answer == 'c':
+                self.button_c.background_color = (0, 1, 0, 1)
+
+        # Schedule resetting button colors after 1 second
+        Clock.schedule_once(self.reset_button_colors, 1)
+
+        self.question_index += 1
+        if self.question_index < len(questions):
+            self.question_label.text = questions[self.question_index].prompt
+        else:
+            if self.score > len(questions) * 2 / 2:
+                self.show_congratulations('C:\\Users\\ashaj\\Downloads\\ballons.png')
+            else:
+                self.show_congratulations('C:\\Users\\ashaj\\Downloads\\sademoji.jpg')
+
+    def reset_button_colors(self, dt):
+        self.button_a.background_color = (1, 1, 1, 1)
+        self.button_b.background_color = (1, 1, 1, 1)
+        self.button_c.background_color = (1, 1, 1, 1)
+
+    def show_congratulations(self, image_path):
+        self.layout.clear_widgets()  # Clear current widgets
+        # Create a new screen with only the image and congratulations message
+        screen = Screen(name='congratulations')
+        layout = BoxLayout(orientation='vertical')
+        congratulation_label = Label(text="Congratulations! You scored " + str(self.score) + " points.", size_hint=(1, None), height=100)
+        image = Image(source=image_path)
+        layout.add_widget(congratulation_label)
+        layout.add_widget(image)
+        screen.add_widget(layout)
+        self.screen_manager.switch_to(screen)
+
+if _name_ == "_main_":
+    QuizApp().run()
